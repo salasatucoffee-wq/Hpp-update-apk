@@ -1,0 +1,556 @@
+<title>HPP Salasatu Coffee</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  /* Layout: sticky header with tabs (top on desktop, bottom bar on phone); each tab is a stack of cards on a quiet green-grey ground. Coffee-brown marks ingredient cost, green marks profit. */
+  --bg:#F2F5F3; --surface:#FFFFFF; --surface2:#E9F0EC; --ink:#14221D; --muted:#53665F; --line:#D8E0DC; --line2:#B4C3BC;
+  --accent:#1E6B52; --accent-ink:#FFFFFF; --accent-soft:#DAEDE4;
+  --good:#1D6F46; --good-bg:#DCF0E4; --warn:#7F5200; --warn-bg:#FAE9C3; --bad:#9E3524; --bad-bg:#F8DCD5;
+  --c-bahan:#8B5E3C; --c-var:#C9A06A; --c-tenaga:#3E6F93; --c-sewa:#7D8FB5; --c-lain:#9BA8A2; --c-laba:#1E6B52;
+  --font-display:'Bricolage Grotesque',system-ui,sans-serif; --font-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1412; --surface:#152019; --surface2:#1C2A24; --ink:#E5EEEA; --muted:#9BB0A8; --line:#263630; --line2:#3A4E46;
+  --accent:#4CC38F; --accent-ink:#06231A; --accent-soft:#1B3A2E;
+  --good:#6FD3A0; --good-bg:#16382A; --warn:#F0C36B; --warn-bg:#3A2E12; --bad:#F29A88; --bad-bg:#40201A;
+  --c-bahan:#C08A62; --c-var:#D9B987; --c-tenaga:#6FA3C7; --c-sewa:#9DADD0; --c-lain:#7D8F88; --c-laba:#4CC38F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1412; --surface:#152019; --surface2:#1C2A24; --ink:#E5EEEA; --muted:#9BB0A8; --line:#263630; --line2:#3A4E46;
+  --accent:#4CC38F; --accent-ink:#06231A; --accent-soft:#1B3A2E;
+  --good:#6FD3A0; --good-bg:#16382A; --warn:#F0C36B; --warn-bg:#3A2E12; --bad:#F29A88; --bad-bg:#40201A;
+  --c-bahan:#C08A62; --c-var:#D9B987; --c-tenaga:#6FA3C7; --c-sewa:#9DADD0; --c-lain:#7D8F88; --c-laba:#4CC38F; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:19px;line-height:1.2}
+h3{font-size:16px}
+p{margin:0}
+small,.muted{color:var(--muted)}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header + nav */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:1040px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.brand{display:flex;flex-direction:column;min-width:0;flex:1}
+.brand b{font-family:var(--font-display);font-size:18px;line-height:1.1}
+.brand a{font-size:13px;color:var(--muted);text-decoration:none}
+.brand a:hover{color:var(--accent)}
+.tabs{display:flex;gap:4px}
+.tab{display:flex;align-items:center;gap:7px;border:0;background:none;padding:9px 12px;border-radius:8px;color:var(--muted);cursor:pointer;font-weight:600;font-size:14px}
+.tab svg{width:19px;height:19px;flex:none}
+.tab:hover{background:var(--surface2)}
+.tab[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+.gear{border:1px solid var(--line2);background:none;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;font-size:14px}
+.gear[aria-current="page"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+@media (max-width:819px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);justify-content:space-around;gap:0;
+    padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tab{flex-direction:column;gap:2px;font-size:11.5px;padding:6px 4px;flex:1;min-width:0}
+}
+@media (min-width:820px){.top-in{flex-wrap:nowrap}.brand{flex:0 1 auto;margin-right:16px}.tabs{flex:1}.gear{order:3}}
+
+/* page */
+main{max-width:1040px;margin:0 auto;padding-block:18px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:820px){main{padding-bottom:48px}}
+.stack{display:flex;flex-direction:column;gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.card>h2+*,.card>.hd+*{margin-top:12px}
+.hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pagehead{display:flex;flex-direction:column;gap:2px}
+.pagehead h1{font-size:24px;line-height:1.15}
+.pagehead p{color:var(--muted);max-width:62ch}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi span{font-size:13px;color:var(--muted)}
+.kpi b{font-family:var(--font-display);font-size:26px;line-height:1.1}
+.kpi small{font-size:12.5px}
+
+/* pills */
+.pill{display:inline-block;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.neutral{background:var(--surface2);color:var(--muted)}
+
+/* buttons */
+.btn{border:1px solid var(--line2);background:var(--surface);border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;min-height:40px}
+.btn:hover{background:var(--surface2)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.danger.armed{background:var(--bad);color:#fff}
+.btn.sm{padding:5px 10px;min-height:32px;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* fields */
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
+.fld{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fld>span:first-child{font-size:12.5px;font-weight:600;color:var(--muted)}
+.box{display:flex;align-items:center;border:1px solid var(--line2);border-radius:8px;background:var(--surface);padding:0 10px;min-height:40px}
+.box:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.box input,.box select{border:0;background:transparent;outline:0;width:100%;min-width:0;padding:8px 0;font-size:16px}
+.box em{font-style:normal;color:var(--muted);font-size:13px;white-space:nowrap;padding-left:6px}
+.box em.pre{padding:0 6px 0 0}
+.box select{padding-right:4px}
+.fld .hint{font-size:12px;color:var(--muted)}
+textarea{width:100%;min-height:120px;border:1px solid var(--line2);border-radius:8px;background:var(--surface);padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+
+/* item rows */
+.rows{display:flex;flex-direction:column;gap:10px}
+.item{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.item-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{font-size:13px;color:var(--muted)}
+.chip b{color:var(--ink)}
+
+/* menu split */
+.split{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:819px){.split{grid-template-columns:1fr}}
+.mlist{display:flex;flex-direction:column;gap:6px}
+.mbtn{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;cursor:pointer;width:100%}
+.mbtn:hover{background:var(--surface2)}
+.mbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.mbtn .t{display:flex;flex-direction:column;min-width:0}
+.mbtn .t b{font-weight:600;overflow-wrap:anywhere}
+.mbtn .t small{font-size:12.5px}
+
+.rec{display:grid;grid-template-columns:minmax(0,1fr) 110px 86px 32px;gap:8px;align-items:center}
+.rec .cost{text-align:right;font-weight:600}
+.rec .x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;border-radius:6px;height:32px}
+.rec .x:hover{background:var(--bad-bg);color:var(--bad)}
+@media (max-width:560px){.rec{grid-template-columns:minmax(0,1fr) 100px 32px}.rec .cost{grid-column:1/3;text-align:left;font-size:13px;color:var(--muted);margin-top:-4px}}
+
+.sum{display:flex;flex-direction:column}
+.sum div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)}
+.sum div:last-child{border-bottom:0}
+.sum .tot{font-weight:700;font-size:16px}
+.sum .sub{color:var(--muted);font-size:13.5px}
+.sum .sub::before{content:"";}
+
+/* bars */
+.stackbar{display:flex;height:30px;border-radius:8px;overflow:hidden;background:var(--surface2);gap:2px}
+.stackbar i{display:block;height:100%;min-width:0}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 12px;font-size:13px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend s{width:11px;height:11px;border-radius:3px;display:inline-block;flex:none}
+.legend b{margin-left:auto}
+.prog{height:12px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent);border-radius:99px}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+td.r,th.r{text-align:right}
+.scroll{overflow-x:auto}
+
+.mrow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1.3fr) minmax(0,2fr);gap:10px;align-items:end}
+.mrow .name{display:flex;flex-direction:column;gap:3px;padding-bottom:8px}
+.mcalc{display:flex;gap:14px;flex-wrap:wrap;padding-bottom:6px}
+.mcalc div{display:flex;flex-direction:column}
+.mcalc b{font-size:15px}
+.mcalc small{font-size:12px}
+@media (max-width:819px){.mrow{grid-template-columns:1fr 1fr}.mrow .name,.mrow .mcalc{grid-column:1/-1}.mrow .name{flex-direction:row;justify-content:space-between;align-items:center;padding-bottom:0}}
+
+.note{background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--muted)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-weight:600;font-size:14px;z-index:40;max-width:90vw}
+@media (min-width:820px){#toast{bottom:24px}}
+.empty{padding:14px;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.prog i,.stackbar i{transition:width .3s ease}}
+</style>
+
+<header class="top"><div class="top-in">
+  <div class="brand"><b>Salasatu Coffee</b><a href="https://instagram.com/salasatucoffee" target="_blank" rel="noopener">@salasatucoffee · HPP &amp; target bulanan</a></div>
+  <nav class="tabs" id="tabs" aria-label="Menu utama"></nav>
+  <button class="gear" id="gear" data-a="view" data-v="atur">Pengaturan</button>
+</div></header>
+<main id="view" aria-live="polite"></main>
+<div id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- util ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const num=v=>{const x=parseFloat(String(v??'').replace(',','.'));return isFinite(x)?x:0;};
+const nf=(n,d=0)=>n.toLocaleString('id-ID',{maximumFractionDigits:d,minimumFractionDigits:0});
+const rp=n=>(n<0?'-':'')+'Rp '+nf(Math.abs(Math.round(n||0)));
+const jt=n=>{const a=Math.abs(n);const s=a>=1e6?nf(a/1e6,1)+' jt':a>=1e3?nf(a/1e3,0)+' rb':nf(a);return (n<0?'-':'')+'Rp '+s;};
+const pc=(n,d=1)=>nf(n||0,d)+'%';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>'x'+Math.random().toString(36).slice(2,8);
+const up500=x=>Math.ceil(x/500-1e-9)*500;
+const unitRp=n=>'Rp '+(n>=100?nf(n,0):n>=10?nf(n,1):nf(n,2));
+
+/* ---------- data ---------- */
+const KEY='salasatu-hpp-v1';
+const BENCH={hpp:[25,35],tenaga:[20,30],sewa:[8,15],lain:[8,15],laba:[10,20]};
+const I=(id,name,cat,unit,price,pack)=>({id,name,cat,unit,price,pack});
+const cold=[['cupc',1],['tutupc',1],['sedotan',1]], hot=[['cuph',1],['tutuph',1]];
+const M=(id,name,cat,price,mix,rec)=>({id,name,cat,price,mix,rec:rec.map(([ing,qty])=>({ing,qty}))});
+function seed(){
+  const S={v:1,
+    settings:{cups:2400,days:26,hppMax:30,labaPct:15,labaRp:5000000,growth:5},
+    ing:[I('kopi','Biji kopi house blend','Bahan','g',130000,1000),I('susu','Susu UHT full cream','Bahan','ml',18500,1000),
+      I('aren','Sirup gula aren','Bahan','ml',30000,1000),I('gula','Gula pasir','Bahan','g',17000,1000),
+      I('es','Es batu','Bahan','g',20000,20000),I('air','Air mineral','Bahan','ml',20000,19000),
+      I('coklat','Bubuk coklat','Bahan','g',85000,1000),I('matcha','Bubuk matcha','Bahan','g',230000,500),
+      I('karamel','Sirup karamel','Bahan','ml',110000,750),I('vanila','Sirup vanila','Bahan','ml',110000,750),
+      I('teh','Teh hitam','Bahan','g',55000,500),I('lemon','Lemon','Bahan','pcs',4500,1),
+      I('cupc','Cup plastik 16 oz','Kemasan','pcs',35000,50),I('tutupc','Tutup cup dingin','Kemasan','pcs',17500,50),
+      I('sedotan','Sedotan','Kemasan','pcs',9000,100),I('cuph','Cup kertas 8 oz (panas)','Kemasan','pcs',30000,50),
+      I('tutuph','Tutup cup panas','Kemasan','pcs',12000,50)],
+    menu:[
+      M('m1','Kopi Susu Gula Aren','Kopi',22000,30,[['kopi',18],['susu',120],['aren',20],['es',150],...cold]),
+      M('m2','Americano Es','Kopi',16000,8,[['kopi',18],['air',120],['es',150],...cold]),
+      M('m3','Caffe Latte Es','Kopi',23000,12,[['kopi',18],['susu',150],['es',130],...cold]),
+      M('m4','Cappuccino Panas','Kopi',22000,6,[['kopi',18],['susu',140],...hot]),
+      M('m5','Espresso Panas','Kopi',15000,7,[['kopi',18],...hot]),
+      M('m6','Kopi Susu Karamel','Kopi',25000,8,[['kopi',18],['susu',120],['karamel',20],['es',150],...cold]),
+      M('m7','Kopi Susu Vanila','Kopi',25000,6,[['kopi',18],['susu',120],['vanila',20],['es',150],...cold]),
+      M('m8','Mocha Es','Kopi',26000,6,[['kopi',18],['susu',120],['coklat',25],['es',130],...cold]),
+      M('m9','Matcha Latte Es','Non-kopi',27000,6,[['matcha',8],['susu',150],['gula',12],['es',130],...cold]),
+      M('m10','Coklat Susu Es','Non-kopi',23000,5,[['coklat',30],['susu',150],['gula',8],['es',130],...cold]),
+      M('m11','Es Teh Lemon','Non-kopi',15000,6,[['teh',5],['lemon',0.5],['gula',20],['air',150],['es',150],...cold])],
+    costs:[
+      {id:'c1',name:'Sewa tempat',type:'bulan',val:8000000,kind:'sewa'},
+      {id:'c2',name:'Gaji karyawan (3 orang)',type:'bulan',val:9000000,kind:'tenaga'},
+      {id:'c3',name:'Listrik & air',type:'bulan',val:1800000,kind:'lain'},
+      {id:'c4',name:'Internet & aplikasi kasir',type:'bulan',val:500000,kind:'lain'},
+      {id:'c5',name:'Marketing & Instagram Ads',type:'bulan',val:2500000,kind:'lain'},
+      {id:'c6',name:'Penyusutan mesin & peralatan',type:'bulan',val:2000000,kind:'lain'},
+      {id:'c7',name:'Perawatan & kebersihan',type:'bulan',val:500000,kind:'lain'},
+      {id:'c8',name:'Biaya lain-lain',type:'bulan',val:700000,kind:'lain'},
+      {id:'c9',name:'Tisu, sabun & perlengkapan habis pakai',type:'cup',val:150,kind:'lain'},
+      {id:'c10',name:'QRIS & komisi platform online (rata-rata)',type:'persen',val:3,kind:'lain'}],
+    months:[]};
+  return S;
+}
+let S=load();
+function load(){try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.v===1&&Array.isArray(s.menu))return s;}}catch(e){}return seed();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const UI={view:'dash',sel:null,pend:null,focus:null};
+
+/* ---------- calculations ---------- */
+function calcAll(){
+  const ing=new Map(S.ing.map(i=>[i.id,i]));
+  const uc=i=>i&&num(i.pack)>0?num(i.price)/num(i.pack):0;
+  const recCost=r=>num(r.qty)*uc(ing.get(r.ing));
+  const split=m=>{let b=0,k=0;m.rec.forEach(r=>{const i=ing.get(r.ing),c=recCost(r);(i&&i.cat==='Kemasan')?k+=c:b+=c;});return{b,k,h:b+k};};
+  const mixTot=S.menu.reduce((a,m)=>a+num(m.mix),0);
+  const rows=S.menu.map(m=>({m,...split(m),w:mixTot?num(m.mix)/mixTot:1/Math.max(1,S.menu.length)}));
+  const avgPrice=rows.reduce((a,r)=>a+r.w*num(r.m.price),0);
+  const avgHpp=rows.reduce((a,r)=>a+r.w*r.h,0);
+  const sum=f=>S.costs.filter(f).reduce((a,c)=>a+num(c.val),0);
+  const fixed=sum(c=>c.type==='bulan');
+  const fixedK=k=>sum(c=>c.type==='bulan'&&c.kind===k);
+  const perCup=sum(c=>c.type==='cup');
+  const pct=sum(c=>c.type==='persen')/100;
+  const cm=avgPrice-avgHpp-perCup-pct*avgPrice;
+  const cmr=avgPrice>0?cm/avgPrice:0;
+  const days=Math.max(1,num(S.settings.days)), cups=Math.max(1,num(S.settings.cups));
+  const stat=m=>{const s=split(m),price=num(m.price),varc=perCup+pct*price,fa=fixed/cups,full=s.h+varc+fa,net=price-full;
+    return{...s,price,varc,fa,full,net,hppPct:price>0?s.h/price*100:0,gross:price-s.h,grossPct:price>0?(price-s.h)/price*100:0,netPct:price>0?net/price*100:0};};
+  return{ing,uc,recCost,stat,rows,avgPrice,avgHpp,fixed,fixedK,perCup,pct,cm,cmr,days,cups,mixTot,
+    be:cm>0?fixed/cm:0,targetOmzet:l=>cmr>0?(fixed+l)/cmr:0};
+}
+const hppStatus=p=>{const mx=num(S.settings.hppMax);return p<=mx?['good','Sehat']:p<=mx+5?['warn','Waspada']:['bad','Tinggi'];};
+const pill=([c,t])=>`<span class="pill ${c}">${t}</span>`;
+
+function monthKeys(n){const d=new Date();let y=d.getFullYear(),m=d.getMonth();const o=[];for(let i=0;i<n;i++){o.push(y+'-'+String(m+1).padStart(2,'0'));if(++m>11){m=0;y++;}}return o;}
+const mLabel=(id,short)=>{const[y,m]=id.split('-');return new Date(+y,+m-1,1).toLocaleDateString('id-ID',short?{month:'short'}:{month:'long',year:'numeric'});};
+function genMonths(){
+  const K=calcAll(),t0=K.targetOmzet(num(S.settings.labaRp)),g=num(S.settings.growth)/100;
+  const old=new Map(S.months.map(x=>[x.id,x]));
+  S.months=monthKeys(12).map((k,i)=>({id:k,target:Math.round(t0*Math.pow(1+g,i)/1e5)*1e5,actual:old.get(k)?num(old.get(k).actual):0}));
+}
+if(!S.months.length)genMonths();
+const curMonth=()=>S.months.find(m=>m.id===monthKeys(1)[0])||S.months[0];
+function mStat(K,mo){
+  const t=num(mo.target),a=num(mo.actual);
+  const cups=K.avgPrice>0?t/K.avgPrice:0,laba=t*K.cmr-K.fixed;
+  return{cups,perDay:cups/K.days,laba,labaPct:t?laba/t*100:0,ach:t?a/t*100:0,labaAct:a?a*K.cmr-K.fixed:null};
+}
+
+/* ---------- field helpers ---------- */
+function fld(path,val,{label,t='n',pre='',unit='',mode='decimal',hint=''}={}){
+  const id='f-'+path.replace(/[^\w]/g,'_');
+  return `<label class="fld"><span>${label}</span><span class="box">${pre?`<em class="pre">${pre}</em>`:''}<input id="${id}" data-f="${esc(path)}" data-t="${t}" type="text" ${t==='n'?`inputmode="${mode}"`:''} value="${esc(val)}" autocomplete="off">${unit?`<em>${unit}</em>`:''}</span>${hint?`<span class="hint">${hint}</span>`:''}</label>`;
+}
+function sel(path,val,opts,{label,re=false}={}){
+  const id='f-'+path.replace(/[^\w]/g,'_');
+  return `<label class="fld"><span>${label}</span><span class="box"><select id="${id}" data-f="${esc(path)}" data-t="s" ${re?'data-r="1"':''}>${opts.map(([v,l])=>`<option value="${esc(v)}"${v===val?' selected':''}>${esc(l)}</option>`).join('')}</select></span></label>`;
+}
+function delBtn(k,label='Hapus'){const on=UI.pend===k;return `<button class="btn danger sm${on?' armed':''}" data-a="del" data-k="${k}">${on?'Yakin hapus?':label}</button>`;}
+
+/* ---------- computed blocks (updated without re-rendering inputs) ---------- */
+const BLOCKS={
+  mlist(K){return S.menu.map(m=>{const s=K.stat(m);return `<button class="mbtn" data-a="selMenu" data-id="${m.id}" aria-pressed="${m.id===UI.sel}"><span class="t"><b>${esc(m.name)||'(tanpa nama)'}</b><small>${rp(s.price)} · HPP ${pc(s.hppPct)}</small></span>${pill(hppStatus(s.hppPct))}</button>`;}).join('')||'<div class="empty">Belum ada menu.</div>';},
+  mres(K,id){
+    const m=S.menu.find(x=>x.id===id);if(!m)return '';
+    const s=K.stat(m),st=hppStatus(s.hppPct),sg1=up500(s.h/(num(S.settings.hppMax)/100||.3));
+    const d=1-K.pct-num(S.settings.labaPct)/100,sg2=d>0?up500((s.h+K.perCup+s.fa)/d):0;
+    return `<div class="sum">
+      <div><span>Bahan baku</span><b>${rp(s.b)}</b></div>
+      <div><span>Kemasan</span><b>${rp(s.k)}</b></div>
+      <div class="tot"><span>HPP bahan &amp; kemasan</span><span>${rp(s.h)} ${pill(st)}</span></div>
+      <div class="sub"><span>Biaya variabel (${rp(K.perCup)}/cup + ${pc(K.pct*100)} omzet)</span><span>${rp(s.varc)}</span></div>
+      <div class="sub"><span>Alokasi biaya tetap (${rp(K.fixed)} ÷ ${nf(K.cups)} cup)</span><span>${rp(s.fa)}</span></div>
+      <div class="tot"><span>HPP penuh per cup</span><b>${rp(s.full)}</b></div>
+      <div><span>Harga jual</span><b>${rp(s.price)}</b></div>
+      <div><span>Laba kotor per cup</span><b>${rp(s.gross)} · ${pc(s.grossPct)}</b></div>
+      <div class="tot"><span>Laba bersih per cup</span><span>${rp(s.net)} · ${pc(s.netPct)}</span></div>
+    </div>
+    <div class="note">HPP bahan ${pc(s.hppPct)} dari harga jual (batas kamu ${pc(num(S.settings.hppMax),0)}). Harga minimal agar HPP bahan sesuai batas: <b>${rp(sg1)}</b>${sg2?`. Harga agar laba bersih ${pc(num(S.settings.labaPct),0)}: <b>${rp(sg2)}</b>`:''}.</div>`;
+  },
+  rc(K,id,i){const m=S.menu.find(x=>x.id===id);const r=m&&m.rec[+i];return r?rp(K.recCost(r)):'';},
+  mix(K){return `Total porsi saat ini ${nf(K.mixTot,1)}%. Angka dihitung proporsional, jadi tidak harus tepat 100%.`;},
+  uc(K,id){const i=K.ing.get(id);return i?unitRp(K.uc(i))+' / '+esc(i.unit):'';},
+  csum(K){return `<div class="kpis">
+    <div class="kpi"><span>Biaya tetap per bulan</span><b>${rp(K.fixed)}</b><small>${rp(K.fixed/K.days)} per hari buka</small></div>
+    <div class="kpi"><span>Alokasi tetap per cup</span><b>${rp(K.fixed/K.cups)}</b><small>dibagi ${nf(K.cups)} cup/bulan</small></div>
+    <div class="kpi"><span>Variabel per cup</span><b>${rp(K.perCup+K.pct*K.avgPrice)}</b><small>${rp(K.perCup)} + ${pc(K.pct*100)} dari harga</small></div></div>`;},
+  tcalc(K){
+    const l=num(S.settings.labaRp),o=K.targetOmzet(l),c=K.avgPrice>0?o/K.avgPrice:0;
+    if(K.cmr<=0)return '<div class="note">Margin per cup belum positif. Cek harga jual dan resep dulu.</div>';
+    return `<div class="kpis">
+      <div class="kpi"><span>Omzet impas</span><b>${jt(K.be*K.avgPrice)}</b><small>${nf(K.be/K.days,0)} cup/hari</small></div>
+      <div class="kpi"><span>Omzet untuk laba ${jt(l)}</span><b>${jt(o)}</b><small>${pc(l/(o||1)*100)} dari omzet</small></div>
+      <div class="kpi"><span>Target penjualan</span><b>${nf(c/K.days,0)} cup/hari</b><small>${nf(c,0)} cup per bulan · ${rp(K.avgPrice)} rata-rata/cup</small></div></div>`;},
+  mrow(K,id){
+    const mo=S.months.find(x=>x.id===id);if(!mo)return '';const s=mStat(K,mo);
+    const cap=num(mo.actual)?pill(s.ach>=100?['good','Tercapai']:s.ach>=80?['warn','Hampir']:['bad','Kurang'])+' '+pc(s.ach,0):'<span class="pill neutral">Belum ada</span>';
+    return `<div><b>${nf(s.perDay,0)}</b><small>cup/hari target</small></div><div><b>${jt(s.laba)}</b><small>laba target (${pc(s.labaPct,0)})</small></div><div><b>${s.labaAct===null?'–':jt(s.labaAct)}</b><small>laba realisasi (estimasi)</small></div><div><b>${cap}</b><small>capaian omzet</small></div>`;
+  }
+};
+function updateComputed(){
+  const K=calcAll();
+  document.querySelectorAll('[data-c]').forEach(el=>{
+    const [k,...a]=el.dataset.c.split(':');const f=BLOCKS[k];if(!f)return;
+    const h=f(K,...a);if(el.innerHTML!==h)el.innerHTML=h;
+  });
+}
+
+/* ---------- views ---------- */
+function viewDash(K){
+  const cur=curMonth(),T=cur?num(cur.target):0,O=T||K.be*K.avgPrice||1;
+  const hp=K.avgPrice?K.avgHpp/K.avgPrice*100:0,st=hppStatus(hp);
+  const ms=cur?mStat(K,cur):{perDay:0,laba:0,labaPct:0,ach:0};
+  const varp=(K.avgPrice?K.perCup/K.avgPrice:0)*100+K.pct*100;
+  const ten=K.fixedK('tenaga')/O*100,sew=K.fixedK('sewa')/O*100,lai=K.fixedK('lain')/O*100;
+  const laba=100-hp-varp-ten-sew-lai;
+  const segs=[['Bahan & kemasan',hp,'--c-bahan'],['Variabel & platform',varp,'--c-var'],['Tenaga kerja',ten,'--c-tenaga'],['Sewa',sew,'--c-sewa'],['Listrik, marketing, dll.',lai,'--c-lain'],['Laba bersih',Math.max(0,laba),'--c-laba']];
+  const tot=Math.max(100,segs.reduce((a,s)=>a+s[1],0));
+  const costRow=(n,v,[lo,hi],lim)=>{const l=lim??hi;const s=v<=l?['good','Aman']:v<=l+3?['warn','Waspada']:['bad','Tinggi'];return `<tr><td>${n}</td><td class="r"><b>${pc(v)}</b></td><td class="r">${lo}–${hi}%</td><td class="r">${pill(s)}</td></tr>`;};
+  const lt=num(S.settings.labaPct),ls=laba>=lt?['good','Sesuai']:laba>=lt-3?['warn','Dekat']:['bad','Di bawah'];
+  const bad=K.rows.map(r=>({...K.stat(r.m),m:r.m})).sort((a,b)=>b.hppPct-a.hppPct).filter(x=>x.hppPct>num(S.settings.hppMax)).slice(0,4);
+  const best=K.rows.map(r=>({...K.stat(r.m),m:r.m})).sort((a,b)=>b.net-a.net).slice(0,4);
+  const hasAct=S.months.some(m=>num(m.actual)>0);
+  return `<div class="stack">
+  <div class="pagehead"><h1>Ringkasan</h1><p>Angka di bawah dihitung dari menu, resep, dan biaya yang kamu isi. Data contoh bisa langsung diganti.</p></div>
+  <div class="kpis">
+    <div class="kpi"><span>Rata-rata HPP bahan</span><b>${pc(hp)}</b><small>${pill(st)} batas ${pc(num(S.settings.hppMax),0)}</small></div>
+    <div class="kpi"><span>Laba kotor per cup</span><b>${rp(K.avgPrice-K.avgHpp)}</b><small>harga rata-rata ${rp(K.avgPrice)}</small></div>
+    <div class="kpi"><span>Titik impas</span><b>${nf(K.be/K.days,0)} cup/hari</b><small>${jt(K.be*K.avgPrice)} omzet per bulan</small></div>
+    <div class="kpi"><span>Laba bersih target</span><b>${jt(ms.laba)}</b><small>${cur?mLabel(cur.id):''} · ${pc(ms.labaPct)} dari omzet</small></div>
+  </div>
+  <div class="grid2">
+    <section class="card"><div class="hd"><h2>Bulan ini</h2><span class="muted">${cur?mLabel(cur.id):'-'}</span></div>
+      ${cur?`<div class="sum"><div><span>Target omzet</span><b>${rp(T)}</b></div><div><span>Realisasi omzet</span><b>${rp(num(cur.actual))}</b></div><div><span>Target penjualan</span><b>${nf(ms.perDay,0)} cup/hari</b></div></div>
+      <div class="prog" role="img" aria-label="Capaian ${nf(ms.ach,0)} persen"><i style="width:${Math.min(100,ms.ach)}%"></i></div>
+      <div class="hd"><span class="muted">Capaian ${pc(ms.ach,0)}</span><button class="btn sm" data-a="view" data-v="target">Isi realisasi</button></div>`:'<div class="empty">Belum ada target. Buat di tab Target.</div>'}
+    </section>
+    <section class="card"><h2>Dari Rp 100 penjualan</h2>
+      <div class="stackbar" role="img" aria-label="Struktur biaya">${segs.map(s=>`<i style="width:${s[1]/tot*100}%;background:var(${s[2]})"></i>`).join('')}</div>
+      <div class="legend">${segs.map(s=>`<span><s style="background:var(${s[2]})"></s>${s[0]}<b>${s[0]==='Laba bersih'?pc(laba):pc(s[1])}</b></span>`).join('')}</div>
+      ${laba<0?'<div class="note">Dengan target omzet ini biaya lebih besar dari penjualan. Naikkan target atau turunkan biaya tetap.</div>':''}
+    </section>
+  </div>
+  <section class="card"><div class="hd"><h2>Dibanding patokan coffee shop</h2><small>Dihitung pada omzet target bulan ini</small></div>
+    <div class="scroll"><table><thead><tr><th>Komponen</th><th class="r">Kamu</th><th class="r">Patokan umum</th><th class="r">Status</th></tr></thead><tbody>
+      ${costRow('HPP bahan & kemasan',hp,BENCH.hpp,num(S.settings.hppMax))}
+      ${costRow('Tenaga kerja',ten,BENCH.tenaga)}
+      ${costRow('Sewa',sew,BENCH.sewa)}
+      ${costRow('Listrik, marketing & lainnya',lai+varp,BENCH.lain)}
+      <tr><td>Laba bersih</td><td class="r"><b>${pc(laba)}</b></td><td class="r">${BENCH.laba[0]}–${BENCH.laba[1]}%</td><td class="r">${pill(ls)}</td></tr>
+    </tbody></table></div>
+    <div class="note">Patokan adalah rule of thumb industri kafe, bukan angka pasti. Kafe independen umumnya menyisakan laba bersih sekitar 10–15% dari omzet. Batas HPP dan target laba bisa diubah di Pengaturan.</div>
+  </section>
+  <section class="card"><div class="hd"><h2>Target vs realisasi 12 bulan</h2><span class="legend" style="display:flex;gap:12px"><span><s style="background:var(--line2)"></s>Target</span><span><s style="background:var(--accent)"></s>Realisasi</span></span></div>
+    ${chart()}${hasAct?'':'<small>Isi realisasi omzet di tab Target agar batang hijau muncul.</small>'}
+  </section>
+  <div class="grid2">
+    <section class="card"><h2>Menu yang perlu dicek harganya</h2>
+      ${bad.length?`<div class="sum">${bad.map(x=>`<div><span>${esc(x.m.name)}</span><span>HPP ${pc(x.hppPct)} ${pill(hppStatus(x.hppPct))}</span></div>`).join('')}</div>`:'<div class="empty">Semua menu di bawah batas HPP.</div>'}
+      <button class="btn sm" data-a="view" data-v="menu">Buka menu &amp; resep</button></section>
+    <section class="card"><h2>Laba bersih per cup tertinggi</h2>
+      <div class="sum">${best.map(x=>`<div><span>${esc(x.m.name)}</span><b>${rp(x.net)}</b></div>`).join('')}</div></section>
+  </div></div>`;
+}
+function chart(){
+  const ms=S.months;if(!ms.length)return '<div class="empty">Belum ada target.</div>';
+  const W=480,H=230,L=44,R=6,T=10,B=28;
+  const mx=Math.max(1,...ms.map(m=>Math.max(num(m.target),num(m.actual))));
+  const raw=mx/4,p=Math.pow(10,Math.floor(Math.log10(raw))),step=[1,2,2.5,5,10].map(f=>f*p).find(s=>s>=raw),n=Math.ceil(mx/step),top=n*step;
+  const y=v=>T+(H-T-B)*(1-v/top),bw=(W-L-R)/ms.length;
+  let g='';
+  for(let i=0;i<=n;i++){const v=i*step;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v>=1e6?nf(v/1e6,v%1e6?1:0)+' jt':nf(v)}</text>`;}
+  ms.forEach((m,i)=>{
+    const x0=L+i*bw,w=bw*.36,t=num(m.target),a=num(m.actual);
+    g+=`<rect x="${x0+bw*.1}" y="${y(t)}" width="${w}" height="${H-B-y(t)}" fill="var(--line2)" rx="2"/>`;
+    if(a>0)g+=`<rect x="${x0+bw*.1+w+2}" y="${y(a)}" width="${w}" height="${H-B-y(a)}" fill="var(--accent)" rx="2"/>`;
+    g+=`<text x="${x0+bw/2}" y="${H-9}" text-anchor="middle" font-size="11" fill="var(--muted)">${mLabel(m.id,true)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Grafik target dan realisasi omzet per bulan" style="display:block;max-width:100%;height:auto"><rect width="${W}" height="${H}" fill="var(--surface)"/>${g}</svg>`;
+}
+
+function viewMenu(K){
+  if(!S.menu.find(m=>m.id===UI.sel))UI.sel=S.menu[0]?S.menu[0].id:null;
+  const m=S.menu.find(x=>x.id===UI.sel);
+  const opts=['Bahan','Kemasan'].flatMap(c=>S.ing.filter(i=>i.cat===c).map(i=>[i.id,`${i.name} (${i.unit})`]));
+  const ed=m?`<section class="card"><div class="hd"><h2>Detail menu &amp; resep</h2><div class="actions"><button class="btn sm" data-a="dupMenu" data-id="${m.id}">Duplikat</button>${delBtn('menu|'+m.id)}</div></div>
+    <div class="fields">${fld('menu|'+m.id+'|name',m.name,{label:'Nama menu',t:'s'})}
+      ${sel('menu|'+m.id+'|cat',m.cat,[['Kopi','Kopi'],['Non-kopi','Non-kopi']],{label:'Kategori'})}
+      ${fld('menu|'+m.id+'|price',m.price,{label:'Harga jual',pre:'Rp'})}
+      ${fld('menu|'+m.id+'|mix',m.mix,{label:'Porsi penjualan',unit:'%',hint:'Perkiraan dari total cup terjual'})}</div>
+    <div class="note" data-c="mix"></div>
+    <h3>Resep per 1 cup</h3>
+    <div class="rows">${m.rec.map((r,i)=>{const ing=K.ing.get(r.ing);return `<div class="rec">
+      <span class="box"><select id="f-rec_${m.id}_${i}_ing" data-f="rec|${m.id}|${i}|ing" data-t="s" data-r="1" aria-label="Bahan">${opts.map(([v,l])=>`<option value="${esc(v)}"${v===r.ing?' selected':''}>${esc(l)}</option>`).join('')}</select></span>
+      <span class="box"><input id="f-rec_${m.id}_${i}_qty" data-f="rec|${m.id}|${i}|qty" data-t="n" type="text" inputmode="decimal" value="${esc(r.qty)}" aria-label="Jumlah" autocomplete="off"><em>${ing?esc(ing.unit):''}</em></span>
+      <span class="cost" data-c="rc:${m.id}:${i}"></span>
+      <button class="x" data-a="delRec" data-id="${m.id}" data-i="${i}" aria-label="Hapus bahan">×</button></div>`;}).join('')||'<div class="empty">Belum ada bahan di resep ini.</div>'}</div>
+    <div class="actions"><button class="btn" data-a="addRec" data-id="${m.id}">+ Tambah bahan</button></div>
+    <h3>Rincian biaya &amp; laba</h3>
+    <div data-c="mres:${m.id}"></div></section>`:'<section class="card"><div class="empty">Tambah menu pertama kamu.</div></section>';
+  return `<div class="stack"><div class="pagehead"><h1>Menu &amp; resep</h1><p>Pilih menu, atur resep per cup, dan lihat HPP, biaya tambahan, serta laba bersihnya.</p></div>
+  <div class="split"><aside class="card"><div class="mlist" data-c="mlist"></div><div class="actions" style="margin-top:12px"><button class="btn primary" data-a="addMenu">+ Menu baru</button></div></aside>${ed}</div></div>`;
+}
+function viewIng(K){
+  return `<div class="stack"><div class="pagehead"><h1>Bahan &amp; kemasan</h1><p>Masukkan harga beli dan isi per kemasan. Harga per gram, ml, atau pcs dihitung otomatis untuk resep.</p></div>
+  <div class="rows">${S.ing.map(i=>`<div class="item"><div class="fields">
+    ${fld('ing|'+i.id+'|name',i.name,{label:'Nama',t:'s'})}
+    ${sel('ing|'+i.id+'|cat',i.cat,[['Bahan','Bahan baku'],['Kemasan','Kemasan']],{label:'Jenis'})}
+    ${sel('ing|'+i.id+'|unit',i.unit,[['g','gram (g)'],['ml','mililiter (ml)'],['pcs','buah (pcs)']],{label:'Satuan resep',re:true})}
+    ${fld('ing|'+i.id+'|price',i.price,{label:'Harga beli',pre:'Rp'})}
+    ${fld('ing|'+i.id+'|pack',i.pack,{label:'Isi per pembelian',unit:i.unit,hint:'contoh: 1 kg = 1000 g'})}</div>
+    <div class="item-foot"><span class="chip">Harga per ${esc(i.unit)}: <b data-c="uc:${i.id}"></b></span>${delBtn('ing|'+i.id)}</div></div>`).join('')}</div>
+  <div class="actions"><button class="btn primary" data-a="addIng">+ Bahan baru</button></div></div>`;
+}
+function viewCost(K){
+  const T={bulan:'Rp per bulan',cup:'Rp per cup',persen:'% dari omzet'};
+  const row=c=>`<div class="item"><div class="fields">
+    ${fld('cost|'+c.id+'|name',c.name,{label:'Nama biaya',t:'s'})}
+    ${sel('cost|'+c.id+'|type',c.type,Object.entries(T),{label:'Dihitung',re:true})}
+    ${fld('cost|'+c.id+'|val',c.val,c.type==='persen'?{label:'Besar biaya',unit:'%'}:{label:'Besar biaya',pre:'Rp',unit:c.type==='cup'?'/ cup':'/ bulan'})}
+    ${c.type==='bulan'?sel('cost|'+c.id+'|kind',c.kind,[['tenaga','Tenaga kerja'],['sewa','Sewa'],['lain','Lainnya']],{label:'Kelompok'}):''}</div>
+    <div class="item-foot"><span class="chip"></span>${delBtn('cost|'+c.id)}</div></div>`;
+  const grp=(t,title)=>{const l=S.costs.filter(c=>c.type===t);return `<section class="stack"><div class="hd"><h2>${title}</h2><button class="btn sm" data-a="addCost" data-t="${t}">+ Tambah</button></div><div class="rows">${l.map(row).join('')||'<div class="empty">Belum ada.</div>'}</div></section>`;};
+  return `<div class="stack"><div class="pagehead"><h1>Biaya tambahan</h1><p>Di luar bahan dan kemasan: sewa, gaji, listrik, marketing, sampai komisi. Biaya tetap dibagi ke tiap cup sesuai estimasi cup per bulan.</p></div>
+  <div data-c="csum"></div>${grp('bulan','Biaya tetap per bulan')}${grp('cup','Biaya variabel per cup')}${grp('persen','Biaya persen dari omzet')}</div>`;
+}
+function viewTarget(K){
+  const cur=curMonth();
+  return `<div class="stack"><div class="pagehead"><h1>Target bulanan</h1><p>Tentukan target laba bersih, lalu aplikasi menghitung omzet dan jumlah cup yang harus terjual. Isi realisasi tiap bulan untuk memantau.</p></div>
+  <section class="card"><h2>Hitung target</h2>
+    <div class="fields">${fld('set|labaRp',S.settings.labaRp,{label:'Target laba bersih per bulan',pre:'Rp'})}
+    ${fld('set|growth',S.settings.growth,{label:'Naik target tiap bulan',unit:'%'})}
+    ${fld('set|days',S.settings.days,{label:'Hari buka per bulan',unit:'hari'})}</div>
+    <div data-c="tcalc"></div>
+    <div class="actions"><button class="btn primary" data-a="genMonths">Buat target 12 bulan</button></div>
+    <small>Target lama diganti, realisasi yang sudah kamu isi tetap tersimpan.</small></section>
+  <section class="stack"><h2>Target dan realisasi per bulan</h2><div class="rows">
+  ${S.months.map(m=>`<div class="item"><div class="mrow"><div class="name"><b>${mLabel(m.id)}</b>${cur&&cur.id===m.id?'<span class="pill good">Bulan ini</span>':''}</div>
+    ${fld('month|'+m.id+'|target',m.target,{label:'Target omzet',pre:'Rp'})}${fld('month|'+m.id+'|actual',m.actual,{label:'Realisasi omzet',pre:'Rp'})}
+    <div class="mcalc" data-c="mrow:${m.id}"></div></div></div>`).join('')}</div></section></div>`;
+}
+function viewAtur(K){
+  const json=JSON.stringify(S);
+  return `<div class="stack"><div class="pagehead"><h1>Pengaturan</h1><p>Data tersimpan otomatis di browser perangkat ini. Salin cadangan agar aman kalau ganti HP atau membersihkan browser.</p></div>
+  <section class="card"><h2>Asumsi hitungan</h2>
+    <div class="fields">${fld('set|cups',S.settings.cups,{label:'Estimasi cup per bulan',unit:'cup',hint:'Dipakai membagi biaya tetap ke tiap cup'})}
+    ${fld('set|hppMax',S.settings.hppMax,{label:'Batas HPP bahan',unit:'%',hint:'Umumnya 25–35% dari harga jual'})}
+    ${fld('set|labaPct',S.settings.labaPct,{label:'Target laba bersih',unit:'%',hint:'Umumnya 10–20% dari omzet'})}
+    ${fld('set|days',S.settings.days,{label:'Hari buka per bulan',unit:'hari'})}</div>
+    <div class="actions"><button class="btn" data-a="useCups">Samakan cup/bulan dengan target bulan ini</button></div></section>
+  <section class="card"><h2>Cadangan data</h2>
+    <textarea id="bk" spellcheck="false" aria-label="Data cadangan">${esc(json)}</textarea>
+    <div class="actions"><button class="btn primary" data-a="copyBk">Salin cadangan</button><button class="btn" data-a="restoreBk">Pulihkan dari kotak teks</button>${delBtn('reset','Kembalikan ke data contoh')}</div></section>
+  <section class="card"><h2>Catatan</h2><div class="note">Harga bahan, gaji, dan sewa pada data awal adalah contoh. Ganti dengan angka dari supplier dan pengeluaran Salasatu Coffee. Patokan laba dan HPP adalah rule of thumb umum coffee shop.</div></section></div>`;
+}
+const VIEWS={dash:viewDash,menu:viewMenu,bahan:viewIng,biaya:viewCost,target:viewTarget,atur:viewAtur};
+const ICONS={
+ dash:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+ menu:'<path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5V8z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3v2M12 3v2"/>',
+ bahan:'<path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+ biaya:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>'};
+const TABS=[['dash','Ringkasan'],['menu','Menu'],['bahan','Bahan'],['biaya','Biaya'],['target','Target']];
+$('#tabs').innerHTML=TABS.map(([v,l])=>`<button class="tab" data-a="view" data-v="${v}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[v]}</svg><span>${l}</span></button>`).join('');
+
+function render(){
+  const a=document.activeElement,fid=a&&a.id;let s=null,e=null;try{s=a.selectionStart;e=a.selectionEnd;}catch(x){}
+  $('#view').innerHTML=VIEWS[UI.view](calcAll());
+  document.querySelectorAll('[data-a="view"]').forEach(b=>{if(b.dataset.v===UI.view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  updateComputed();
+  const t=UI.focus||fid;
+  if(t){const el=document.getElementById(t);if(el){try{el.focus({preventScroll:!UI.focus});if(!UI.focus&&s!=null)el.setSelectionRange(s,e);}catch(x){}}}
+  UI.focus=null;
+}
+let tt;function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600);}
+
+/* ---------- editing ---------- */
+const coll=()=>({ing:S.ing,menu:S.menu,cost:S.costs,month:S.months});
+function apply(path,v){
+  const p=path.split('|');
+  if(p[0]==='set'){S.settings[p[1]]=v;return;}
+  if(p[0]==='rec'){const m=S.menu.find(x=>x.id===p[1]);if(m&&m.rec[+p[2]])m.rec[+p[2]][p[3]]=v;return;}
+  const o=(coll()[p[0]]||[]).find(x=>x.id===p[1]);if(o)o[p[2]]=v;
+}
+$('#view').addEventListener('input',ev=>{
+  const t=ev.target,f=t.dataset&&t.dataset.f;if(!f)return;
+  apply(f,t.dataset.t==='n'?num(t.value):t.value);save();
+  if(t.dataset.r){UI.focus=t.id;render();}else updateComputed();
+});
+function onAction(ev){
+  const b=ev.target.closest('[data-a]');if(!b)return;
+  const a=b.dataset.a,id=b.dataset.id;
+  if(a!=='del'&&UI.pend){UI.pend=null;}
+  switch(a){
+    case 'view':UI.view=b.dataset.v;render();window.scrollTo(0,0);return;
+    case 'selMenu':UI.sel=id;render();return;
+    case 'addMenu':{const m={id:uid(),name:'Menu baru',cat:'Kopi',price:20000,mix:5,rec:[]};S.menu.push(m);UI.sel=m.id;UI.focus='f-menu_'+m.id+'_name';break;}
+    case 'dupMenu':{const m=S.menu.find(x=>x.id===id);if(m){const c=JSON.parse(JSON.stringify(m));c.id=uid();c.name+=' (salinan)';S.menu.push(c);UI.sel=c.id;toast('Menu diduplikat');}break;}
+    case 'addRec':{const m=S.menu.find(x=>x.id===id);if(m){const used=new Set(m.rec.map(r=>r.ing));const n=S.ing.find(i=>!used.has(i.id))||S.ing[0];if(n){m.rec.push({ing:n.id,qty:0});UI.focus='f-rec_'+m.id+'_'+(m.rec.length-1)+'_qty';}}break;}
+    case 'delRec':{const m=S.menu.find(x=>x.id===id);if(m)m.rec.splice(+b.dataset.i,1);break;}
+    case 'addIng':{const i=I(uid(),'Bahan baru','Bahan','g',0,1000);S.ing.push(i);UI.focus='f-ing_'+i.id+'_name';break;}
+    case 'addCost':{const t=b.dataset.t;const c={id:uid(),name:t==='bulan'?'Biaya baru':t==='cup'?'Biaya per cup baru':'Biaya persen baru',type:t,val:0,kind:'lain'};S.costs.push(c);UI.focus='f-cost_'+c.id+'_name';break;}
+    case 'genMonths':genMonths();toast('Target 12 bulan dibuat');break;
+    case 'useCups':{const K=calcAll(),c=curMonth();if(c){S.settings.cups=Math.max(1,Math.round(mStat(K,c).cups));toast('Estimasi cup/bulan diperbarui');}break;}
+    case 'copyBk':{const ta=$('#bk');const txt=JSON.stringify(S);const fb=()=>{ta.focus();ta.select();toast('Salin manual dari kotak teks');};
+      try{navigator.clipboard.writeText(txt).then(()=>toast('Cadangan disalin'),fb);}catch(x){fb();}return;}
+    case 'restoreBk':{try{const d=JSON.parse($('#bk').value);if(!d||d.v!==1||!Array.isArray(d.menu)||!Array.isArray(d.ing)||!Array.isArray(d.costs)||!d.settings)throw 0;S=d;if(!Array.isArray(S.months))S.months=[];toast('Data dipulihkan');}catch(x){toast('Teks cadangan tidak valid');return;}break;}
+    case 'del':{
+      const k=b.dataset.k;if(UI.pend!==k){UI.pend=k;render();return;}
+      UI.pend=null;const [c,did]=k.split('|');
+      if(c==='ing'){S.ing=S.ing.filter(x=>x.id!==did);S.menu.forEach(m=>m.rec=m.rec.filter(r=>r.ing!==did));}
+      else if(c==='menu'){S.menu=S.menu.filter(x=>x.id!==did);UI.sel=null;}
+      else if(c==='cost'){S.costs=S.costs.filter(x=>x.id!==did);}
+      else if(c==='reset'){S=seed();genMonths();UI.sel=null;toast('Data contoh dikembalikan');}
+      break;}
+    default:return;
+  }
+  save();render();
+}
+document.addEventListener('click',onAction);
+render();
+})();
+</script>
