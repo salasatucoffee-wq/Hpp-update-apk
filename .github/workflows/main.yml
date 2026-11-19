@@ -2,7 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     tags: ['v*']
   workflow_dispatch:
 
@@ -14,8 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Opsional: isi 4 secret ini di Settings > Secrets and variables > Actions
-  # agar APK ditandatangani dengan keystore milikmu sendiri (rilis).
   KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
   KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -25,11 +23,119 @@ jobs:
   apk:
     name: Build APK Android
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cek file web
+      - name: Siapkan sumber web
         run: |
-          test -s www/index.html || { echo
+          mkdir -p www
+          if [ ! -s www/index.html ] && [ -s index.html ]; then
+            cp index.html www/index.html
+          fi
+          if [ ! -s www/index.html ]; then
+            echo "ERROR: www/index.html tidak ditemukan"
+            ls -la
+            exit 1
+          fi
+          if ! grep -qi '<!doctype' www/index.html; then
+            sed -i '1i <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">' www/index.html
+            sed -i '1i <!doctype html>' www/index.html
+          fi
+          echo "www/index.html OK"
+
+      - name: Buat package.json jika belum ada
+        run: |
+          if [ ! -f package.json ]; then
+            cat > package.json <<'EOF'
+          {
+            "name": "salasatu-hpp",
+            "version": "1.0.0",
+            "private": true,
+            "dependencies": {
+              "@capacitor/android": "^6.2.0",
+              "@capacitor/core": "^6.2.0"
+            },
+            "devDependencies": {
+              "@capacitor/cli": "^6.2.0"
+            }
+          }
+          EOF
+          fi
+
+      - name: Buat capacitor.config.json jika belum ada
+        run: |
+          if [ ! -f capacitor.config.json ]; then
+            cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.salasatu.hpp",
+            "appName": "HPP Salasatu",
+            "webDir": "www",
+            "server": { "androidScheme": "https" },
+            "android": { "backgroundColor": "#F2F5F3" }
+          }
+          EOF
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependensi
+        run: npm install --no-audit --no-fund
+
+      - name: Buat proyek Android
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      - name: Build APK debug
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Kumpulkan APK debug
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk out/HPP-Salasatu-debug.apk
+          ls -la out
+
+      - name: Build APK release bertanda tangan (hanya jika secret ada)
+        if: ${{ env.KEYSTORE_BASE64 != '' }}
+        working-directory: android
+        run: |
+          ./gradlew assembleRelease --no-daemon
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          UNSIGNED=app/build/outputs/apk/release/app-release-unsigned.apk
+          "$BT/zipalign" -f -p 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/release.jks" --ks-pass env:KEYSTORE_PASSWORD --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASSWORD --out "$GITHUB_WORKSPACE/out/HPP-Salasatu-release.apk" "$RUNNER_TEMP/aligned.apk"
+          "$BT/apksigner" verify "$GITHUB_WORKSPACE/out/HPP-Salasatu-release.apk"
+
+      - name: Upload APK sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HPP-Salasatu-APK
+          path: out/*.apk
+          if-no-files-found: error
+
+      - name: Buat GitHub Release (saat push tag v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*.apk
+          generate_release_notes: true
